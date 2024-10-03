@@ -17,6 +17,7 @@ url = "2.3"
 dashmap = "5.4"
 crossbeam = "0.8"
 lazy_static = "1.4"
+thiserror = "1.0"
 
 [build-dependencies]
 maturin = "0.13"

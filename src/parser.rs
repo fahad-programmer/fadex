@@ -1,10 +1,9 @@
 // src/parser.rs
-
 use scraper::{Html, Selector};
 use url::Url;
 
 /// Parses the HTML content and extracts the title and meta description.
-pub fn parse_html(html: &str) -> (Option<String>, Option<String>) {
+pub fn get_meta_and_title(html: &str) -> (Option<String>, Option<String>) {
     let document = Html::parse_document(html);
 
     // Extract title
@@ -60,4 +59,60 @@ pub fn sanitize_link(link: &str) -> Option<String> {
         },
         Err(_) => None,
     }
+}
+
+
+/// Finds an HTML element by its `id` and returns its text content.
+///
+/// # Arguments
+///
+/// * `html` - A string slice containing the HTML content.
+/// * `id` - A string slice that holds the `id` of the desired element.
+///
+/// # Returns
+///
+/// * `Option<String>` - Returns `Some(text)` if the element is found, otherwise `None`.
+pub fn find_element_by_id(html: &str, id: &str) -> Option<String> {
+    // parse the html document
+    let document = Html::parse_document(html);
+
+    // Create a css selector for the id 
+    let selector  = Selector::parse(&format!("#{}", id)).ok()?;
+
+    // Select the first element that matches the selector
+    let element = document.select(&selector).next()?;
+
+    // Extract and concatenate the text content of the element
+    Some(element.text().collect::<Vec<_>>().concat())
+}
+
+/// Parses the HTML content and extracts all elements matching the given tag and optional class.
+///
+/// # Arguments
+///
+/// * `html` - A string slice containing the HTML content.
+/// * `tag` - A string slice that holds the name of the HTML tag to search for.
+/// * `class` - An optional string slice that holds the class name to filter elements.
+///
+/// # Returns
+///
+/// * `Vec<String>` - A vector of strings, each containing the outer HTML of a matched element.
+
+pub fn get_elements(html: &str, tag: &str, class: Option<&str>) -> Vec<String> {
+    let document = Html::parse_document(html);
+
+    //Build the css selector based on wheather a class is provided or not
+    let selector_string = match class {
+        Some(cls) => format!("{}[class=\"{}\"]", tag, cls),
+        None => tag.to_string()
+    };
+
+    let selector = match Selector::parse(&selector_string) {
+        Ok(sel) => sel,
+        Err(_) => return Vec::new(), //Return empty vector if selector is invalid
+    };
+
+    document.select(&selector)
+        .map(|element| element.html())
+        .collect()
 }

@@ -1,21 +1,39 @@
 // src/crawler.rs
 
-use crate::parser::{extract_links, sanitize_link};
-use tokio::sync::Semaphore;
+use reqwest::Client;
 use std::sync::Arc;
-use crossbeam::queue::SegQueue;
 use dashmap::DashSet;
+use crossbeam::queue::SegQueue;
+use tokio::sync::Semaphore;
 use tokio::task;
 use lazy_static::lazy_static;
 use url::Url;
-use reqwest;
+use thiserror::Error;
 
-// Constants
+#[derive(Error, Debug)]
+pub enum FetchError {
+    #[error("Request error: {0}")]
+    RequestError(#[from] reqwest::Error),
+
+    #[error("URL parsing error: {0}")]
+    UrlParseError(#[from] url::ParseError),
+}
+
+lazy_static! {
+    static ref CLIENT: Client = Client::new();
+}
+
 const MAX_CONCURRENT_TASKS: usize = 100;
 
-// Initialize a global semaphore to limit concurrency
 lazy_static! {
     static ref SEMAPHORE: Arc<Semaphore> = Arc::new(Semaphore::new(MAX_CONCURRENT_TASKS));
+}
+
+/// Asynchronously fetches the content of the given URL.
+pub async fn fetch_page(url: &str) -> Result<String, FetchError> {
+    let response = CLIENT.get(url).send().await?;
+    let content = response.text().await?;
+    Ok(content)
 }
 
 /// Asynchronously crawls web pages starting from the URLs in the queue.
@@ -23,7 +41,7 @@ pub async fn crawl(
     queue: Arc<SegQueue<String>>,
     visited: Arc<DashSet<String>>,
     base_url: Url,
-) {
+) -> Result<(), FetchError> {
     let mut handles = Vec::new();
 
     loop {
@@ -49,7 +67,7 @@ pub async fn crawl(
         // Acquire semaphore permit
         let _permit = SEMAPHORE.clone().acquire_owned().await.unwrap();
 
-        // Clone for the task
+        // Clone references for the async task
         let queue_inner = Arc::clone(&queue);
         let visited_inner = Arc::clone(&visited);
         let base_inner = base_url.clone();
@@ -60,7 +78,7 @@ pub async fn crawl(
             match fetch_page(&url).await {
                 Ok(body) => {
                     // Parse HTML
-                    let (title, description) = crate::parser::parse_html(&body);
+                    let (title, description) = crate::parser::get_meta_and_title(&body);
 
                     // Print the extracted data
                     println!("URL: {}", url);
@@ -68,9 +86,9 @@ pub async fn crawl(
                     println!("Description: {:?}", description);
 
                     // Extract and enqueue links
-                    let links = extract_links(&body, &base_inner);
+                    let links = crate::parser::extract_links(&body, &base_inner);
                     for link in links {
-                        if let Some(sanitized) = sanitize_link(&link) {
+                        if let Some(sanitized) = crate::parser::sanitize_link(&link) {
                             if !visited_inner.contains(&sanitized) {
                                 queue_inner.push(sanitized);
                             }
@@ -78,10 +96,10 @@ pub async fn crawl(
                     }
                 }
                 Err(e) => {
-                    eprintln!("Error fetching {}: {:?}", url, e);
+                    eprintln!("Error fetching {}: {}", url, e);
                 }
             }
-            // Permit is automatically released when `permit` goes out of scope
+            // Permit is automatically released when `_permit` goes out of scope
         });
 
         handles.push(handle);
@@ -91,11 +109,6 @@ pub async fn crawl(
     for handle in handles {
         let _ = handle.await;
     }
-}
 
-/// Fetches the content of the given URL.
-async fn fetch_page(url: &str) -> Result<String, reqwest::Error> {
-    let response = reqwest::get(url).await?;
-    let content = response.text().await?;
-    Ok(content)
+    Ok(())
 }

@@ -865,6 +865,7 @@ dependencies = [
  "pyo3-asyncio",
  "reqwest",
  "scraper",
+ "thiserror",
  "tokio",
  "url",
 ]

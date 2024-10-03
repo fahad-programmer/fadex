@@ -1,18 +1,30 @@
 // src/lib.rs
 
-use pyo3::prelude::*;
 use pyo3::exceptions;
+use pyo3::prelude::*;
 use pyo3_asyncio::tokio::future_into_py;
+use std::sync::Arc;
+use thiserror::Error;
 use url::Url;
 
 // Declare the modules
 mod crawler;
 mod parser;
 
+// Define a custom error type for better error handling
+#[derive(Error, Debug)]
+pub enum FetchError {
+    #[error("Request error: {0}")]
+    RequestError(#[from] reqwest::Error),
+
+    #[error("URL parsing error: {0}")]
+    UrlParseError(#[from] url::ParseError),
+}
+
 /// Parses the HTML content and extracts the title and meta description.
 #[pyfunction]
-fn parse_html_py(html: &str) -> PyResult<(Option<String>, Option<String>)> {
-    let (title, description) = parser::parse_html(html);
+fn get_meta_and_title_py(html: &str) -> PyResult<(Option<String>, Option<String>)> {
+    let (title, description) = parser::get_meta_and_title(html);
     Ok((title, description))
 }
 
@@ -33,6 +45,33 @@ fn sanitize_link_py(link: &str) -> PyResult<Option<String>> {
     Ok(sanitized)
 }
 
+/// Finds an HTML element by its `id` and returns its text content.
+#[pyfunction]
+fn find_element_by_id_py(html: &str, id: &str) -> PyResult<Option<String>> {
+    let element = parser::find_element_by_id(html, id);
+    Ok(element)
+}
+
+/// Asynchronously fetches the content of a web page.
+#[pyfunction]
+fn fetch_page_py(py: Python, url: String) -> PyResult<PyObject> {
+    // Define the async task
+    let async_fetch = async move {
+        match crawler::fetch_page(&url).await {
+            Ok(content) => Ok(content),
+            Err(e) => Err(exceptions::PyIOError::new_err(format!(
+                "Failed to fetch page: {}",
+                e
+            ))),
+        }
+    };
+
+    // Convert the async task to a Python awaitable
+    let py_future = future_into_py(py, async_fetch)?;
+
+    Ok(py_future.into())
+}
+
 /// Asynchronously crawls web pages starting from a given URL.
 #[pyfunction]
 fn crawl_py(py: Python, start_url: String, base_url: String) -> PyResult<PyObject> {
@@ -42,19 +81,24 @@ fn crawl_py(py: Python, start_url: String, base_url: String) -> PyResult<PyObjec
     })?;
 
     // Initialize visited set and queue
-    let visited = std::sync::Arc::new(dashmap::DashSet::new());
-    let queue = std::sync::Arc::new(crossbeam::queue::SegQueue::new());
+    let visited = Arc::new(dashmap::DashSet::new());
+    let queue = Arc::new(crossbeam::queue::SegQueue::new());
     queue.push(start_url.clone());
 
     // Clone references for the async task
-    let visited_clone = std::sync::Arc::clone(&visited);
-    let queue_clone = std::sync::Arc::clone(&queue);
+    let visited_clone = Arc::clone(&visited);
+    let queue_clone = Arc::clone(&queue);
     let base_clone = base.clone();
 
     // Define the async task
     let async_crawl = async move {
-        crawler::crawl(queue_clone, visited_clone, base_clone).await;
-        Ok(()) // Ensure the async block returns Result<(), PyErr>
+        match crawler::crawl(queue_clone, visited_clone, base_clone).await {
+            Ok(_) => Ok(()),
+            Err(e) => Err(exceptions::PyIOError::new_err(format!(
+                "Crawling failed: {}",
+                e
+            ))),
+        }
     };
 
     // Convert the async task to a Python awaitable
@@ -63,12 +107,21 @@ fn crawl_py(py: Python, start_url: String, base_url: String) -> PyResult<PyObjec
     Ok(py_async_crawl.into())
 }
 
+#[pyfunction]
+fn get_elements_py(html: &str, tag: &str, class: Option<&str>) -> PyResult<Vec<String>> {
+    let elements = parser::get_elements(html, tag, class);
+    Ok(elements)
+}
+
 /// A Python module implemented in Rust.
 #[pymodule]
-fn fadex(_py: Python, m: &PyModule) -> PyResult<()> {  // Ensure the module name is 'fadex'
-    m.add_function(wrap_pyfunction!(parse_html_py, m)?)?;
+fn fadex(_py: Python, m: &PyModule) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(get_meta_and_title_py, m)?)?;
     m.add_function(wrap_pyfunction!(extract_links_py, m)?)?;
     m.add_function(wrap_pyfunction!(sanitize_link_py, m)?)?;
+    m.add_function(wrap_pyfunction!(find_element_by_id_py, m)?)?;
+    m.add_function(wrap_pyfunction!(fetch_page_py, m)?)?;
     m.add_function(wrap_pyfunction!(crawl_py, m)?)?;
+    m.add_function(wrap_pyfunction!(get_elements_py, m)?)?;
     Ok(())
 }

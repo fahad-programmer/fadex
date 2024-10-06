@@ -1,7 +1,3 @@
-Here’s a revised version of the documentation for your `fadex` module, focusing solely on the Python functions and arguments without any references to the underlying Rust code.
-
----
-
 # Fadex Documentation
 
 ## Overview

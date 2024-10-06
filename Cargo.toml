@@ -1,7 +1,14 @@
 [package]
 name = "fadex"
-version = "0.1.0"
+version = "0.1.2"
 edition = "2021"
+
+
+description = "A Powerful WebScraper With Unmatched Performance"
+license = "MIT"
+homepage = "https://github.com/fahad-programmer/fadex"  # Make sure this URL is correct
+repository = "https://github.com/fahad-programmer/fadex"  # Make sure this URL is correct
+
 
 [lib]
 name = "fadex"  # Ensure this matches your Python module name

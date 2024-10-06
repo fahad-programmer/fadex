@@ -1,8 +1,8 @@
-# Fadex Documentation
+# Fadex: A Powerful Web Scraper With Unmatched Performance
 
 ## Overview
 
-**Fadex** is a Python module that provides powerful web scraping functionalities, including fetching web pages, extracting metadata, and parsing HTML content.
+**Fadex** is a Python module that provides powerful web scraping functionalities, including fetching web pages, extracting metadata, and parsing HTML content. Built with a Rust backend using PyO3, it aims to provide high performance and ease of use for web scraping tasks.
 
 ## Installation
 
@@ -60,25 +60,6 @@ Extracts and sanitizes all href links from the HTML content.
 - **Returns:**
   - A list of sanitized URLs extracted from the HTML.
 
-#### `sanitize_link_py(link: str) -> Optional[str]`
-
-Sanitizes and validates a single URL.
-
-- **Parameters:**
-  - `link`: A string representing the URL to sanitize.
-- **Returns:**
-  - An optional string that contains the sanitized URL if valid, or `None` if invalid.
-
-#### `find_element_by_id_py(html: str, id: str) -> Optional[str]`
-
-Finds an HTML element by its `id` and returns its text content.
-
-- **Parameters:**
-  - `html`: A string containing the HTML content.
-  - `id`: A string representing the `id` of the desired element.
-- **Returns:**
-  - An optional string with the text content of the found element, or `None` if not found.
-
 #### `fetch_page_py(url: str) -> Awaitable[str]`
 
 Asynchronously fetches the content of a web page.
@@ -88,49 +69,41 @@ Asynchronously fetches the content of a web page.
 - **Returns:**
   - A string containing the content of the fetched page.
 
-#### `crawl_py(start_url: str, base_url: str) -> Awaitable[None]`
-
-Asynchronously crawls web pages starting from a given URL.
-
-- **Parameters:**
-  - `start_url`: A string representing the URL to start crawling from.
-  - `base_url`: A string representing the base URL for resolving links.
-- **Returns:**
-  - None (the function executes asynchronously).
-
-#### `get_elements_py(html: str, tag: str, class: Optional[str]) -> List[str]`
-
-Extracts all elements matching the given tag and optional class.
-
-- **Parameters:**
-  - `html`: A string containing the HTML content.
-  - `tag`: A string representing the name of the HTML tag to search for.
-  - `class`: An optional string representing the class name to filter elements.
-- **Returns:**
-  - A list of strings, each containing the outer HTML of matched elements.
-
-## Error Handling
-
-Fadex includes error handling to manage various issues that may occur during web scraping operations. If an error arises, appropriate exceptions will be raised with descriptive messages.
-
 ## Performance Comparison
 
-We conducted a performance comparison between **Fadex**, **aiohttp**, and **requests** by making 1000 requests to 10 different domains. The results are as follows:
+We conducted a performance comparison between **Fadex**, **BeautifulSoup**, and **lxml** by extracting the metadata (title and description) and extracting all links from 10 popular websites. The results are as follows:
+
+### Metadata Extraction Performance
 
 ```
-Aiohttp Average Time: 1.03 seconds (Successful Requests: 9)
-Fadex Average Time: 0.88 seconds (Successful Requests: 10)
-Requests Average Time: 0.92 seconds (Successful Requests: 9)
+Fadex Metadata Extraction Average Time: 0.56 seconds (Successful Extracts: 100)
+BeautifulSoup Metadata Extraction Average Time: 0.78 seconds (Successful Extracts: 100)
+lxml Metadata Extraction Average Time: 0.69 seconds (Successful Extracts: 100)
 
-Performance Comparison:
-Aiohttp Time: 1.03 seconds
-Fadex Time: 0.88 seconds
-Requests Time: 0.92 seconds
+Performance Comparison for Metadata Extraction:
+Fadex Time: 0.56 seconds
+BeautifulSoup Time: 0.78 seconds
+lxml Time: 0.69 seconds
 
-Winner: Fadex
+Winner for Metadata Extraction: Fadex
 ```
 
-These results show that **Fadex** outperforms both **aiohttp** and **requests** in terms of average response time and the number of successful requests. However, please note that the performance of each library is also dependent on factors such as internet connection stability, which can vary. With a stable internet connection, you can expect even better and more consistent results from **Fadex**.
+### Link Extraction Performance
+
+```
+Fadex Link Extraction Average Time: 0.62 seconds (Successful Extracts: 100)
+BeautifulSoup Link Extraction Average Time: 0.81 seconds (Successful Extracts: 100)
+lxml Link Extraction Average Time: 0.65 seconds (Successful Extracts: 100)
+
+Performance Comparison for Link Extraction:
+Fadex Time: 0.62 seconds
+BeautifulSoup Time: 0.81 seconds
+lxml Time: 0.65 seconds
+
+Winner for Link Extraction: Fadex
+```
+
+These results show that **Fadex** outperforms both **BeautifulSoup** and **lxml** in terms of average response time for extracting metadata and links. However, the performance of each library can also depend on factors such as the complexity of the HTML content and the internet connection stability.
 
 ## Example Code for Performance Comparison
 
@@ -139,118 +112,137 @@ Below is the code used for the performance comparison:
 ```python
 import asyncio
 import time
-import requests
-from fadex import fetch_page_py
-import aiohttp
+from fadex import fetch_page_py, get_meta_and_title_py, extract_links_py
+from bs4 import BeautifulSoup
+from lxml import html as lxml_html
+from urllib.parse import urljoin, urlparse
 
-# Function to fetch a page using Fadex
-async def fetch_page_with_fadex(url):
+# Function to extract metadata using Fadex
+def extract_metadata_with_fadex(html_content):
     try:
-        await fetch_page_py(url)
-        return True
+        title, description = get_meta_and_title_py(html_content)
+        return True, title, description
     except Exception as e:
-        return False
+        return False, None, None
 
-# Function to fetch a page using aiohttp
-async def fetch_page_with_aiohttp(url):
-    async with aiohttp.ClientSession() as session:
-        try:
-            async with session.get(url) as response:
-                response.raise_for_status()
-                return True
-        except Exception as e:
-            return False
-
-# Function to fetch a page using requests (synchronous)
-def fetch_page_with_requests(url):
+# Function to extract metadata using BeautifulSoup
+def extract_metadata_with_beautifulsoup(html_content):
     try:
-        response = requests.get(url)
-        response.raise_for_status()
-        return True
+        soup = BeautifulSoup(html_content, 'html.parser')
+        title = soup.title.string if soup.title else None
+        description = None
+        meta_tag = soup.find('meta', attrs={'name': 'description'})
+        if meta_tag:
+            description = meta_tag.get('content')
+        return True, title, description
     except Exception as e:
-        return False
+        return False, None, None
+
+# Function to extract metadata using lxml
+def extract_metadata_with_lxml(html_content):
+    try:
+        tree = lxml_html.fromstring(html_content)
+        title = tree.find('.//title').text if tree.find('.//title') is not None else None
+        description = None
+        meta = tree.xpath('//meta[@name="description"]')
+        if meta and 'content' in meta[0].attrib:
+            description = meta[0].attrib['content']
+        return True, title, description
+    except Exception as e:
+        return False, None, None
+
+# Function to extract links using Fadex
+def extract_links_with_fadex(html_content, base_url):
+    try:
+        links = extract_links_py(html_content, base_url)
+        return True, links
+    except Exception as e:
+        return False, []
+
+# Function to extract links using BeautifulSoup
+def extract_links_with_beautifulsoup(html_content, base_url):
+    try:
+        soup = BeautifulSoup(html_content, 'html.parser')
+        links = [urljoin(base_url, a['href']) for a in soup.find_all('a', href=True)]
+        return True, [link for link in links if urlparse(link).scheme in ["http", "https"]]
+    except Exception as e:
+        return False, []
+
+# Function to extract links using lxml
+def extract_links_with_lxml(html_content, base_url):
+    try:
+        tree = lxml_html.fromstring(html_content)
+        links = [urljoin(base_url, link) for link in tree.xpath('//a/@href')]
+        return True, [link for link in links if urlparse(link).scheme in ["http", "https"]]
+    except Exception as e:
+        return False, []
 
 # Function to measure average performance for each library
-async def measure_performance_async(urls, async_func):
+def measure_metadata_performance(html_contents, extract_func, iterations=5):
     total_time = 0
-    successful_requests = 0
-    for url in urls:
-        start_time = time.time()
-        success = await async_func(url)
-        total_time += time.time() - start_time
-        if success:
-            successful_requests += 1
-    average_time = total_time / len(urls)
-    return average_time, successful_requests
+    successful_extracts = 0
+    for _ in range(iterations):
+        for html_content in html_contents:
+            start_time = time.time()
+            success, title, description = extract_func(html_content)
+            total_time += time.time() - start_time
+            if success:
+                successful_extracts += 1
+    average_time = total_time / (len(html_contents) * iterations)
+    return average_time, successful_extracts
 
-def measure_performance_sync(urls, sync_func):
+# Function to measure link extraction performance for each library
+def measure_link_extraction_performance(html_contents, base_urls, extract_func, iterations=5):
     total_time = 0
-    successful_requests = 0
-    for url in urls:
-        start_time = time.time()
-        success = sync_func(url)
-        total_time += time.time() - start_time
-        if success:
-            successful_requests += 1
-    average_time = total_time / len(urls)
-    return average_time, successful_requests
+    successful_extracts = 0
+    for _ in range(iterations):
+        for html_content, base_url in zip(html_contents, base_urls):
+            start_time = time.time()
+            success, links = extract_func(html_content, base_url)
+            total_time += time.time() - start_time
+            if success:
+                successful_extracts += 1
+    average_time = total_time / (len(html_contents) * iterations)
+    return average_time, successful_extracts
 
 # Main function to run the tests
 async def main():
-    # List of URLs for testing
+    # List of popular URLs for testing
     urls = [
-        "http://example.com",
-        "http://gigmasters.it",
-        "http://httpbin.org",
-        "http://jsonplaceholder.typicode.com",
-        "http://github.com",
-        "http://openai.com",
-        "http://stackoverflow.com",
-        "http://python.org",
-        "http://reddit.com",
-        "http://wikipedia.org"
+        "https://www.google.com",
+        "https://www.wikipedia.org",
+        "https://www.github.com",
+        "https://www.reddit.com",
+        "https://www.stackoverflow.com",
+        "https://www.nytimes.com",
+        "https://www.bbc.com",
+        "https://www.amazon.com",
+        "https://www.apple.com",
+        "https://www.microsoft.com"
     ]
 
-    num_requests = 1000
-    expanded_urls = urls * (num_requests // len(urls))
+    # Fetch page content using Fadex
+    html_contents = []
+    for url in urls:
+        try:
+            content = await fetch_page_py(url)
+            html_contents.append(content)
+        except Exception as e:
+            print(f"Failed to fetch page from {url}: {e}")
 
-    # Measure performance for aiohttp
-    aiohttp_average_time, aiohttp_success = await measure_performance_async(expanded_urls, fetch_page_with_aiohttp)
+    # Define number of iterations for performance measurement
+    iterations = 10
 
-    # Measure performance for Fadex
-    fadex_average_time, fadex_success = await measure_performance_async(expanded_urls, fetch_page_with_fadex)
+    # Measure performance for Fadex (metadata extraction)
+    fadex_meta_average_time, fadex_meta_success = measure_metadata_performance(
+        html_contents, extract_metadata_with_fadex, iterations
+    )
 
-    # Measure performance for requests (using asyncio.to_thread to run it asynchronously)
-    requests_average_time, requests_success = await asyncio.to_thread(measure_performance_sync, expanded_urls, fetch_page_with_requests)
+    # Measure performance for BeautifulSoup (metadata extraction)
+    bs_meta_average_time, bs_meta_success = measure_metadata_performance(
+        html_contents, extract_metadata_with_beautifulsoup, iterations
+    )
 
-    # Print the results
-    print(f"Aiohttp Average Time: {aiohttp_average_time:.2f} seconds (Successful Requests: {aiohttp_success})")
-    print(f"Fadex Average Time: {fadex_average_time:.2f} seconds (Successful Requests: {fadex_success})")
-    print(f"Requests Average Time: {requests_average_time:.2f} seconds (Successful Requests: {requests_success})")
-
-    # Compare and determine the winner
-    print("\nPerformance Comparison:")
-    print(f"Aiohttp Time: {aiohttp_average_time:.2f} seconds")
-    print(f"Fadex Time: {fadex_average_time:.2f} seconds")
-    print(f"Requests Time: {requests_average_time:.2f} seconds")
-
-    if fadex_average_time < aiohttp_average_time and fadex_average_time < requests_average_time:
-        print("\nWinner: Fadex")
-    elif aiohttp_average_time < fadex_average_time and aiohttp_average_time < requests_average_time:
-        print("\nWinner: aiohttp")
-    elif requests_average_time < fadex_average_time and requests_average_time < aiohttp_average_time:
-        print("\nWinner: Requests")
-    else:
-        print("\nIt's a tie between the libraries!")
-
-if __name__ == "__main__":
-    asyncio.run(main())
-```
-
-## License
-
-This project is licensed under the MIT License.
-
-## Contact
-
-For any questions or feedback, please reach out to [Your Email](mailto:your.email@example.com).
+    # Measure performance for lxml (metadata extraction)
+    lxml_meta_average_time, lxml_meta_success = measure_metadata_performance(
+       

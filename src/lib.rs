@@ -3,7 +3,6 @@
 use pyo3::exceptions;
 use pyo3::prelude::*;
 use pyo3_asyncio::tokio::future_into_py;
-use std::sync::Arc;
 use thiserror::Error;
 use url::Url;
 
@@ -72,40 +71,6 @@ fn fetch_page_py(py: Python, url: String) -> PyResult<PyObject> {
     Ok(py_future.into())
 }
 
-/// Asynchronously crawls web pages starting from a given URL.
-#[pyfunction]
-fn crawl_py(py: Python, start_url: String, base_url: String) -> PyResult<PyObject> {
-    // Convert base_url string to Url
-    let base = Url::parse(&base_url).map_err(|e| {
-        exceptions::PyValueError::new_err(format!("Invalid base URL: {}", e))
-    })?;
-
-    // Initialize visited set and queue
-    let visited = Arc::new(dashmap::DashSet::new());
-    let queue = Arc::new(crossbeam::queue::SegQueue::new());
-    queue.push(start_url.clone());
-
-    // Clone references for the async task
-    let visited_clone = Arc::clone(&visited);
-    let queue_clone = Arc::clone(&queue);
-    let base_clone = base.clone();
-
-    // Define the async task
-    let async_crawl = async move {
-        match crawler::crawl(queue_clone, visited_clone, base_clone).await {
-            Ok(_) => Ok(()),
-            Err(e) => Err(exceptions::PyIOError::new_err(format!(
-                "Crawling failed: {}",
-                e
-            ))),
-        }
-    };
-
-    // Convert the async task to a Python awaitable
-    let py_async_crawl = future_into_py(py, async_crawl)?;
-
-    Ok(py_async_crawl.into())
-}
 
 #[pyfunction]
 fn get_elements_py(html: &str, tag: &str, class: Option<&str>) -> PyResult<Vec<String>> {
@@ -121,7 +86,6 @@ fn fadex(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(sanitize_link_py, m)?)?;
     m.add_function(wrap_pyfunction!(find_element_by_id_py, m)?)?;
     m.add_function(wrap_pyfunction!(fetch_page_py, m)?)?;
-    m.add_function(wrap_pyfunction!(crawl_py, m)?)?;
     m.add_function(wrap_pyfunction!(get_elements_py, m)?)?;
     Ok(())
 }

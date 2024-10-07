@@ -23,26 +23,17 @@ pub fn get_meta_and_title(html: &str) -> (Option<String>, Option<String>) {
     (title, description)
 }
 
-/// Extracts all href links from the given HTML content.
-pub fn extract_links(html: &str, base_url: &Url) -> Vec<String> {
+
+pub fn extract_links(html: &str) -> Vec<String> {
     let document = Html::parse_document(html);
     let selector = Selector::parse("a[href]").unwrap();
     let mut links = Vec::new();
 
     for element in document.select(&selector) {
         if let Some(href) = element.value().attr("href") {
-            // Attempt to resolve the href against the base URL
-            if let Ok(mut resolved_url) = base_url.join(href) {
-                // Remove fragment to avoid duplicates
-                resolved_url.set_fragment(None);
-
-                // Only include http and https schemes
-                match resolved_url.scheme() {
-                    "http" | "https" => {
-                        links.push(resolved_url.to_string());
-                    },
-                    _ => (), // Skip other schemes like mailto, javascript, etc.
-                }
+            // Only include http and https schemes
+            if href.starts_with("http://") || href.starts_with("https://") {
+                links.push(href.to_string());
             }
         }
     }
@@ -61,7 +52,6 @@ pub fn sanitize_link(link: &str) -> Option<String> {
     }
 }
 
-
 /// Finds an HTML element by its `id` and returns its text content.
 ///
 /// # Arguments
@@ -73,17 +63,17 @@ pub fn sanitize_link(link: &str) -> Option<String> {
 ///
 /// * `Option<String>` - Returns `Some(text)` if the element is found, otherwise `None`.
 pub fn find_element_by_id(html: &str, id: &str) -> Option<String> {
-    // parse the html document
+    // Parse the HTML document
     let document = Html::parse_document(html);
 
-    // Create a css selector for the id 
-    let selector  = Selector::parse(&format!("#{}", id)).ok()?;
+    // Create a CSS selector for the id
+    let selector = Selector::parse(&format!("#{}", id)).ok()?;
 
     // Select the first element that matches the selector
     let element = document.select(&selector).next()?;
 
-    // Extract and concatenate the text content of the element
-    Some(element.text().collect::<Vec<_>>().concat())
+    // Return the HTML content of the element
+    Some(element.html())
 }
 
 /// Parses the HTML content and extracts all elements matching the given tag and optional class.
@@ -97,22 +87,25 @@ pub fn find_element_by_id(html: &str, id: &str) -> Option<String> {
 /// # Returns
 ///
 /// * `Vec<String>` - A vector of strings, each containing the outer HTML of a matched element.
-
-pub fn get_elements(html: &str, tag: &str, class: Option<&str>) -> Vec<String> {
+pub fn get_elements_by_cls(html: &str, class: &str) -> Vec<String> {
+    // Parse the HTML document
     let document = Html::parse_document(html);
 
-    //Build the css selector based on wheather a class is provided or not
-    let selector_string = match class {
-        Some(cls) => format!("{}[class=\"{}\"]", tag, cls),
-        None => tag.to_string()
-    };
+    // Build the CSS selector for the class
+    let selector_string = format!(".{}", class);
 
+    // Parse the selector, return empty vector if it's invalid
     let selector = match Selector::parse(&selector_string) {
         Ok(sel) => sel,
-        Err(_) => return Vec::new(), //Return empty vector if selector is invalid
+        Err(e) => {
+            eprintln!("Error parsing selector: {}", e);
+            return Vec::new();
+        }
     };
 
+    // Select the elements that match the selector and collect the HTML of each element
     document.select(&selector)
         .map(|element| element.html())
         .collect()
 }
+

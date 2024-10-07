@@ -4,7 +4,6 @@ use pyo3::exceptions;
 use pyo3::prelude::*;
 use pyo3_asyncio::tokio::future_into_py;
 use thiserror::Error;
-use url::Url;
 
 // Declare the modules
 mod crawler;
@@ -29,11 +28,8 @@ fn get_meta_and_title_py(html: &str) -> PyResult<(Option<String>, Option<String>
 
 /// Extracts and sanitizes all href links from the HTML content.
 #[pyfunction]
-fn extract_links_py(html: &str, base_url: &str) -> PyResult<Vec<String>> {
-    let base = Url::parse(base_url).map_err(|e| {
-        exceptions::PyValueError::new_err(format!("Invalid base URL: {}", e))
-    })?;
-    let links = parser::extract_links(html, &base);
+fn extract_links_py(html: &str) -> PyResult<Vec<String>> {
+    let links = parser::extract_links(html);
     Ok(links)
 }
 
@@ -73,8 +69,8 @@ fn fetch_page_py(py: Python, url: String) -> PyResult<PyObject> {
 
 
 #[pyfunction]
-fn get_elements_py(html: &str, tag: &str, class: Option<&str>) -> PyResult<Vec<String>> {
-    let elements = parser::get_elements(html, tag, class);
+fn get_elements_py(html: &str, class: &str) -> PyResult<Vec<String>> {
+    let elements = parser::get_elements_by_cls(html, class);
     Ok(elements)
 }
 

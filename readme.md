@@ -50,13 +50,12 @@ Parses the HTML content and extracts the title and meta description.
     - `title`: An optional string representing the page title.
     - `description`: An optional string representing the meta description.
 
-#### `extract_links_py(html: str, base_url: str) -> List[str]`
+#### `extract_links_py(html: str) -> List[str]`
 
 Extracts and sanitizes all href links from the HTML content.
 
 - **Parameters:**
   - `html`: A string containing the HTML content.
-  - `base_url`: A string representing the base URL to resolve relative links.
 - **Returns:**
   - A list of sanitized URLs extracted from the HTML.
 
@@ -68,6 +67,27 @@ Asynchronously fetches the content of a web page.
   - `url`: A string containing the URL of the page to fetch.
 - **Returns:**
   - A string containing the content of the fetched page.
+
+### `find_element_by_id_py(html: str, id: str) -> List[str]`
+
+Fetches the elements that have the specified id in the html content.
+
+- **Parameters:**
+  - `html`: A string containing the html content.
+  - `id` : The id of which u want elements for.
+- **Returns:**
+  - A list of elements usually one that have the same id as given in param.
+
+### `get_elements_py(html: str, class: str) -> List[str]`
+
+Fetches the elements that have the specified class in the html content.
+
+- **Parameters:**
+  - `html`: A string containing the html content.
+  - `class` : The class of which you want elements for.
+- **Returns:**
+  - A list of elements that have the same class as given in param.
+
 
 ## Performance Comparison
 

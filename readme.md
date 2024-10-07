@@ -50,7 +50,7 @@ Parses the HTML content and extracts the title and meta description.
     - `title`: An optional string representing the page title.
     - `description`: An optional string representing the meta description.
 
-#### `extract_links_py(html: str) -> List[str]`
+### `extract_links_py(html: str) -> List[str]`
 
 Extracts and sanitizes all href links from the HTML content.
 
@@ -59,7 +59,7 @@ Extracts and sanitizes all href links from the HTML content.
 - **Returns:**
   - A list of sanitized URLs extracted from the HTML.
 
-#### `fetch_page_py(url: str) -> Awaitable[str]`
+### `fetch_page_py(url: str) -> Awaitable[str]`
 
 Asynchronously fetches the content of a web page.
 

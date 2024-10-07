@@ -1,40 +1,3 @@
-Here's your documentation reformatted to match the style you provided for **Pyhoroscope**. The structure includes headers, badges, and sections, and it maintains clarity and organization for easy navigation.
-
-```html
-<div align="center" id="top"> 
-  <img src="https://your-image-link-here.png" alt="Fadex" />
-
-  &#xa0;
-
-  <!-- <a href="https://your-demo-link-here">Demo</a> -->
-</div>
-
-<h1 align="center">Fadex</h1>
-
-<p align="center">
-  <img alt="Github top language" src="https://img.shields.io/github/languages/top/your-username/fadex?color=56BEB8">
-  <img alt="Github language count" src="https://img.shields.io/github/languages/count/your-username/fadex?color=56BEB8">
-  <img alt="Repository size" src="https://img.shields.io/github/repo-size/your-username/fadex?color=56BEB8">
-  <img alt="License" src="https://img.shields.io/github/license/your-username/fadex?color=56BEB8">
-  <img alt="Github issues" src="https://img.shields.io/github/issues/your-username/fadex?color=56BEB8" />
-  <img alt="Github forks" src="https://img.shields.io/github/forks/your-username/fadex?color=56BEB8" />
-  <img alt="Github stars" src="https://img.shields.io/github/stars/your-username/fadex?color=56BEB8" />
-</p>
-
-<p align="center">
-  <a href="#dart-about">About</a> &#xa0; | &#xa0; 
-  <a href="#sparkles-features">Features</a> &#xa0; | &#xa0;
-  <a href="#rocket-technologies">Technologies</a> &#xa0; | &#xa0;
-  <a href="#white_check_mark-requirements">Requirements</a> &#xa0; | &#xa0;
-  <a href="#checkered_flag-starting">Starting</a> &#xa0; | &#xa0;
-  <a href="#test_tube-how-to-use">How TO</a> &#xa0; | &#xa0;
-  <a href="#hammer_and_wrench-functionalities">Functions</a> &#xa0; | &#xa0;
-  <a href="#memo-license">License</a> &#xa0; | &#xa0;
-  <a href="https://github.com/your-username" target="_blank">Author</a>
-</p>
-
-<br>
-
 ## :dart: About ##
 **Fadex** is a powerful Python module that provides robust web scraping functionalities, including fetching web pages, extracting metadata, and parsing HTML content. Built with a Rust backend using PyO3, it is optimized for performance and ease of use in web scraping tasks.
 
@@ -62,23 +25,8 @@ The following tools were used in this project:
 
 ## :white_check_mark: Requirements ##
 
-Before starting :checkered_flag:, ensure you have [Python](https://python.org) and [Rust](https://www.rust-lang.org/) installed.
+Before starting :checkered_flag:, ensure you have [Python](https://python.org) installed.
 
-## :checkered_flag: Starting ##
-
-```bash
-# Clone this project
-$ git clone https://github.com/your-username/fadex
-
-# Access
-$ cd fadex
-
-# Install dependencies
-$ pip install -r requirements.txt
-
-# Run the project (if applicable)
-$ python your_script.py
-```
 
 ## :test_tube: How To Use ##
 
@@ -125,14 +73,9 @@ asyncio.run(fetch_page(url))
 
 This project is licensed under the MIT License. For more details, see the [LICENSE](LICENSE.md) file.
 
-Made with :heart: by <a href="https://github.com/your-username" target="_blank">Your Name</a>
+Made with :heart: by <a href="https://github.com/fahad-programmer" target="_blank">Fahad Malik</a>
 
 &#xa0;
 
 <a href="#top">Back to top</a>
 ```
-
-### Notes:
-- Replace placeholders like `your-image-link-here`, `your-username`, and `Your Name` with your actual links and names.
-- The structure is consistent with the **Pyhoroscope** example, ensuring clarity and ease of navigation.
-- Feel free to modify any section to better fit your project needs!

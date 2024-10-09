@@ -21,35 +21,35 @@ pub enum FetchError {
 
 /// Parses the HTML content and extracts the title and meta description.
 #[pyfunction]
-fn get_meta_and_title_py(html: &str) -> PyResult<(Option<String>, Option<String>)> {
+fn get_meta_and_title(html: &str) -> PyResult<(Option<String>, Option<String>)> {
     let (title, description) = parser::get_meta_and_title(html);
     Ok((title, description))
 }
 
 /// Extracts and sanitizes all href links from the HTML content.
 #[pyfunction]
-fn extract_links_py(html: &str) -> PyResult<Vec<String>> {
+fn extract_links(html: &str) -> PyResult<Vec<String>> {
     let links = parser::extract_links(html);
     Ok(links)
 }
 
 /// Sanitizes and validates a single URL.
 #[pyfunction]
-fn sanitize_link_py(link: &str) -> PyResult<Option<String>> {
+fn sanitize_link(link: &str) -> PyResult<Option<String>> {
     let sanitized = parser::sanitize_link(link);
     Ok(sanitized)
 }
 
 /// Finds an HTML element by its `id` and returns its text content.
 #[pyfunction]
-fn find_element_by_id_py(html: &str, id: &str) -> PyResult<Option<String>> {
+fn find_element_by_id(html: &str, id: &str) -> PyResult<Option<String>> {
     let element = parser::find_element_by_id(html, id);
     Ok(element)
 }
 
 /// Asynchronously fetches the content of a web page.
 #[pyfunction]
-fn fetch_page_py(py: Python, url: String) -> PyResult<PyObject> {
+fn fetch_page(py: Python, url: String) -> PyResult<PyObject> {
     // Define the async task
     let async_fetch = async move {
         match crawler::fetch_page(&url).await {
@@ -69,7 +69,7 @@ fn fetch_page_py(py: Python, url: String) -> PyResult<PyObject> {
 
 
 #[pyfunction]
-fn get_elements_py(html: &str, class: &str) -> PyResult<Vec<String>> {
+fn get_elements_by_cls(html: &str, class: &str) -> PyResult<Vec<String>> {
     let elements = parser::get_elements_by_cls(html, class);
     Ok(elements)
 }
@@ -77,11 +77,11 @@ fn get_elements_py(html: &str, class: &str) -> PyResult<Vec<String>> {
 /// A Python module implemented in Rust.
 #[pymodule]
 fn fadex(_py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(get_meta_and_title_py, m)?)?;
-    m.add_function(wrap_pyfunction!(extract_links_py, m)?)?;
-    m.add_function(wrap_pyfunction!(sanitize_link_py, m)?)?;
-    m.add_function(wrap_pyfunction!(find_element_by_id_py, m)?)?;
-    m.add_function(wrap_pyfunction!(fetch_page_py, m)?)?;
-    m.add_function(wrap_pyfunction!(get_elements_py, m)?)?;
+    m.add_function(wrap_pyfunction!(get_meta_and_title, m)?)?;
+    m.add_function(wrap_pyfunction!(extract_links, m)?)?;
+    m.add_function(wrap_pyfunction!(sanitize_link, m)?)?;
+    m.add_function(wrap_pyfunction!(find_element_by_id, m)?)?;
+    m.add_function(wrap_pyfunction!(fetch_page, m)?)?;
+    m.add_function(wrap_pyfunction!(get_elements_by_cls, m)?)?;
     Ok(())
 }

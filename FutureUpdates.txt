@@ -1,0 +1,37 @@
+### 1. **parse_html**
+   - Parses raw HTML content into a structured format, making it easier for users to navigate and manipulate the document.
+
+### 2. **find_elements_by_tag**
+   - Finds all elements with a specific tag name (e.g., `div`, `span`) and returns them as a list. This can help users locate and extract content within a specific type of HTML tag.
+
+### 3. **get_text**
+   - Extracts and returns all the text content from an element, ignoring any nested tags. This is useful for users who want the plain text from a section of the page.
+
+### 4. **download_images**
+   - Finds and downloads all images from a page, optionally allowing users to specify image formats (e.g., PNG, JPG) or minimum dimensions.
+
+### 5. **get_attribute**
+   - Fetches the value of a specified attribute from an element (e.g., `href` for links, `src` for images).
+
+### 6. **find_element_by_xpath**
+   - Allows users to locate elements using XPath queries, which provides more flexibility than CSS selectors alone.
+
+### 7. **click_element**
+   - Simulates a click on an element, which can be useful for navigating through dynamically generated content or interacting with JavaScript-driven pages.
+
+### 8. **wait_for_element**
+   - Pauses execution until a specific element appears on the page. Useful for handling asynchronous content loading.
+
+### 9. **scroll_to_bottom**
+   - Automatically scrolls to the bottom of the page, which can be handy for loading more content on pages with infinite scroll.
+
+### 10. **cache_response**
+   - Caches page responses to avoid repeated requests, which can be useful for large-scale scraping operations or testing.
+
+### 11. **set_headers**
+   - Allows users to set custom HTTP headers (e.g., User-Agent, Authorization) for requests, enabling access to restricted or personalized content.
+
+### 12. **handle_cookies**
+   - Provides a way to manage cookies, enabling users to maintain session data and interact with sites that require login.
+
+Adding these functions could help Fadex stand out as a robust, high-performance library for web scraping with Rust and Python. Let me know if you'd like further details on any of these suggestions!

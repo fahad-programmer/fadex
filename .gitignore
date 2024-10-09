@@ -1,5 +1,3 @@
 /target
 venv
-class_extract.py
-fadex_lxml_results.py
-FutureUpdates.txt
+*.py
